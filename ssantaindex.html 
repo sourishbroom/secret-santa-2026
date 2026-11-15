@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biglietto Secret Santa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+/* Layout: una colonna centrata. Busta sigillata, poi biglietto con strappo e matrice. */
+:root {
+  --pine: #0f2a22;
+  --pine-2: #173a2f;
+  --kraft: #d8c49a;
+  --kraft-dark: #c4ad7c;
+  --cream: #f6eedb;
+  --ink: #231d18;
+  --muted: #6d604f;
+  --red: #b3202a;
+  --gold: #c8a24a;
+  --display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  --body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --stamp: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background:
+    radial-gradient(120% 80% at 50% 0%, var(--pine-2) 0%, var(--pine) 60%) fixed,
+    var(--pine);
+  color: var(--cream);
+  font-family: var(--body);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 32px 16px 40px;
+}
+[hidden] { display: none !important; }
+
+/* ---------- Busta ---------- */
+.kicker {
+  margin: 0;
+  font-family: var(--stamp);
+  font-size: 1.15rem;
+  letter-spacing: .22em;
+  color: var(--gold);
+}
+.env-wrap { display: flex; flex-direction: column; align-items: center; gap: 22px; transition: opacity .45s ease, transform .45s ease; }
+.env-wrap.gone { opacity: 0; transform: translateY(24px) scale(.97); }
+.env {
+  position: relative;
+  width: min(86vw, 340px);
+  aspect-ratio: 3 / 2;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 900px;
+  filter: drop-shadow(0 18px 24px rgba(0,0,0,.45));
+  -webkit-tap-highlight-color: transparent;
+}
+.env:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; border-radius: 6px; }
+.env-body { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.flap {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 62%;
+  background: var(--kraft-dark);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top center;
+  transition: transform .6s cubic-bezier(.5, 0, .2, 1), opacity .3s ease .35s;
+}
+.seal {
+  position: absolute;
+  left: 50%; top: 62%;
+  width: 58px; height: 58px;
+  margin: -29px 0 0 -29px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d4414a, var(--red) 55%, #7d141c);
+  color: #f6d9d6;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 -3px 5px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.4);
+  transition: transform .35s ease, opacity .3s ease;
+  animation: pulse 2.2s ease-in-out infinite;
+}
+.seal svg { width: 26px; height: 26px; }
+.env.open .flap { transform: rotateX(180deg); opacity: 0; }
+.env.open .seal { transform: scale(.2) rotate(40deg); opacity: 0; animation: none; }
+@keyframes pulse { 0%, 100% { box-shadow: inset 0 -3px 5px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.4), 0 0 0 0 rgba(200,162,74,.5); } 50% { box-shadow: inset 0 -3px 5px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.4), 0 0 0 12px rgba(200,162,74,0); } }
+.hint { margin: 0; max-width: 28ch; text-align: center; color: #c9d6cd; font-size: .95rem; text-wrap: balance; }
+.hint strong { color: var(--cream); font-weight: 700; }
+
+/* ---------- Biglietto ---------- */
+.ticket {
+  width: min(92vw, 380px);
+  color: var(--ink);
+  filter: drop-shadow(0 20px 28px rgba(0,0,0,.5));
+  animation: rise .7s cubic-bezier(.2, .8, .2, 1) both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(40px) rotate(-1.5deg); } to { opacity: 1; transform: none; } }
+.t-main, .t-stub { background: var(--cream); padding: 26px 24px; }
+.t-main { border-radius: 16px 16px 0 0; padding-bottom: 28px; text-align: center; }
+.t-stub { border-radius: 0 0 16px 16px; padding-top: 24px; }
+.t-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  margin: 0 0 26px;
+  font-family: var(--stamp);
+  font-size: 1.05rem; letter-spacing: .16em;
+  color: var(--red);
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 8px;
+}
+.t-head span:last-child { color: var(--ink); }
+.greet { margin: 0 0 4px; font-size: 1rem; color: var(--muted); }
+.label { margin: 0 0 8px; font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+.who {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 14vw, 3.9rem);
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  color: var(--ink);
+}
+.perf { position: relative; height: 0; border-top: 2px dashed #c9bb98; margin: 0 16px; }
+.perf::before, .perf::after {
+  content: ""; position: absolute; top: -13px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--pine);
+}
+.perf::before { left: -29px; }
+.perf::after { right: -29px; }
+.stamp-row { display: flex; justify-content: center; margin: 4px 0 16px; }
+.stamp {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 6px 16px 6px 12px;
+  border: 3px double var(--red);
+  border-radius: 6px;
+  color: var(--red);
+  font-family: var(--stamp);
+  font-size: 2.05rem; letter-spacing: .08em; line-height: 1;
+  transform: rotate(-3deg);
+  opacity: .93;
+}
+.stamp svg { width: 40px; height: 40px; flex: none; }
+.rule { margin: 0 0 18px; text-align: center; font-size: .98rem; text-wrap: balance; }
+.rule b { font-weight: 700; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; padding-top: 14px; border-top: 1.5px solid var(--ink); }
+.facts div { min-width: 0; }
+.facts dt { font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: var(--muted); margin: 0 0 2px; }
+.facts dd { margin: 0; font-weight: 700; font-size: .92rem; overflow-wrap: anywhere; }
+
+.err { max-width: 30ch; text-align: center; color: #f0d9a8; text-wrap: balance; }
+
+@media (prefers-reduced-motion: reduce) {
+  .seal, .ticket { animation: none; }
+  .flap, .env-wrap, .seal { transition: none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <section id="sealed" class="env-wrap" hidden>
+    <p class="kicker">SECRET SANTA 2026</p>
+    <button id="env" class="env" type="button" aria-label="Apri la busta">
+      <svg class="env-body" viewBox="0 0 300 200" aria-hidden="true">
+        <rect width="300" height="200" rx="6" fill="#d8c49a"/>
+        <polygon points="0,0 150,112 0,200" fill="#ceb98c"/>
+        <polygon points="300,0 150,112 300,200" fill="#ceb98c"/>
+        <polygon points="0,200 150,100 300,200" fill="#dfcda6"/>
+        <g fill="none" stroke="#b39d6b" stroke-width="1.2"><path d="M0 0 L150 112 L300 0"/><path d="M0 200 L150 100 L300 200"/></g>
+      </svg>
+      <span class="flap" aria-hidden="true"></span>
+      <span class="seal" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.5 6.8L12 16.9 5.8 20.4l1.5-6.8L2.2 9l6.9-.7z"/></svg>
+      </span>
+    </button>
+    <p class="hint"><strong>Tocca il sigillo per aprire.</strong> Controlla prima che nessuno guardi lo schermo.</p>
+  </section>
+
+  <article id="ticket" class="ticket" hidden>
+    <div class="t-main">
+      <p class="t-head"><span>SECRET SANTA</span><span>SANTO STEFANO 2026</span></p>
+      <p class="greet" id="greet"></p>
+      <p class="label">Il tuo regalo va a</p>
+      <p class="who" id="who"></p>
+    </div>
+    <div class="perf" aria-hidden="true"></div>
+    <div class="t-stub">
+      <div class="stamp-row">
+        <div class="stamp">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M13 31 q11 6 22 0" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><rect x="21" y="10" width="6" height="25" rx="3" fill="currentColor"/></svg>
+          <span>SILENZIO ASSOLUTO</span>
+        </div>
+      </div>
+      <p class="rule"><b>Il nome resta solo tuo.</b> C'è una sfida extra: ognuno prova a indovinare chi gli ha fatto il regalo. Una parola di troppo e sei scoperto.</p>
+      <dl class="facts">
+        <div><dt>Quando</dt><dd>Sab 26 dicembre</dd></div>
+        <div><dt>Dove</dt><dd>Via Passanti 58</dd></div>
+        <div><dt>Budget</dt><dd>30 €</dd></div>
+      </dl>
+    </div>
+  </article>
+
+  <p id="err" class="err" hidden></p>
+</main>
+
+<script>
+/* DATA: id -> {s: salt, i: iv, c: testo cifrato}. Nessun nome in chiaro. */
+const DATA = {"5ac6203c6675802f":{"s":"XqweU7oCsH3KjISJRLuuyQ==","i":"tFMAdpzlJyKe4Jo5","c":"/WNwYJbVDWV9cILj3HpC6OMNrDsOpmXT6CBzsAW037yfzLnwlmGN81guD7sj6w=="}};
+
+const enc = new TextEncoder();
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (id) => document.getElementById(id);
+
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function sha256hex(s) {
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(s));
+  return Array.from(new Uint8Array(buf)).map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+async function decryptEntry(code) {
+  const id = (await sha256hex('id:' + code)).slice(0, 16);
+  const e = DATA[id];
+  if (!e) return null;
+  const km = await crypto.subtle.importKey('raw', enc.encode(code), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: b64(e.s), iterations: 100000, hash: 'SHA-256' },
+    km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(e.i) }, key, b64(e.c));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+function showError(msg) {
+  $('sealed').hidden = true;
+  $('ticket').hidden = true;
+  $('err').textContent = msg;
+  $('err').hidden = false;
+}
+
+async function init() {
+  const code = location.hash.replace(/^#/, '');
+  if (!/^[a-z0-9]{10,}$/i.test(code)) {
+    return showError('Questo biglietto non ha un link personale. Apri il link che ti è stato mandato.');
+  }
+  if (!(window.crypto && crypto.subtle)) {
+    return showError('Il tuo browser non riesce ad aprire il biglietto. Prova con Safari o Chrome.');
+  }
+  let entry = null;
+  try { entry = await decryptEntry(code); } catch (e) { entry = null; }
+  if (!entry) {
+    return showError('Link non valido. Controlla di averlo copiato intero, senza spazi.');
+  }
+  $('greet').textContent = 'Ciao ' + entry.from + ',';
+  $('who').textContent = entry.to;
+  $('sealed').hidden = false;
+
+  const env = $('env');
+  env.addEventListener('click', () => {
+    if (env.classList.contains('open')) return;
+    env.classList.add('open');
+    const wait = reduce ? 0 : 700;
+    setTimeout(() => {
+      $('sealed').classList.add('gone');
+      setTimeout(() => {
+        $('sealed').hidden = true;
+        $('ticket').hidden = false;
+        window.scrollTo(0, 0);
+      }, reduce ? 0 : 450);
+    }, wait);
+  }, { once: false });
+}
+init();
+window.addEventListener('hashchange', () => location.reload());
+</script>
+</body>
+</html>
